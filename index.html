@@ -68,7 +68,7 @@ li:nth-child(2) .item{animation-delay:.07s}li:nth-child(3) .item{animation-delay
   <p class="sub" id="date">読み込み中…</p>
 </div></header>
 <main>
-  <div class="tabs" role="group" aria-label="期間">
+  <div class="tabs" id="periods" role="group" aria-label="期間">
     <button data-k="d" aria-pressed="true">今日</button>
     <button data-k="w" aria-pressed="false">今週</button>
     <button data-k="m" aria-pressed="false">今月</button>
@@ -116,19 +116,22 @@ li:nth-child(2) .item{animation-delay:.07s}li:nth-child(3) .item{animation-delay
       a.appendChild(body); li.appendChild(a); list.appendChild(li);
     });
   }
-  var btns=document.querySelectorAll('.tabs button');
-  Array.prototype.forEach.call(btns,function(b){
-    b.addEventListener('click',function(){
-      cur=b.getAttribute('data-k');
-      Array.prototype.forEach.call(btns,function(x){ x.setAttribute('aria-pressed',x===b?'true':'false'); });
-      if(data) render();
+  function bind(sel,attr,set){
+    var bs=document.querySelectorAll(sel);
+    Array.prototype.forEach.call(bs,function(b){
+      b.addEventListener('click',function(){
+        set(b.getAttribute(attr));
+        Array.prototype.forEach.call(bs,function(x){ x.setAttribute('aria-pressed',x===b?'true':'false'); });
+        if(data) render();
+      });
     });
-  });
+  }
+  bind('#periods button','data-k',function(v){ cur=v; });
   fetch('data.json?'+Date.now()).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
     data=j;
     var d=new Date(j.updated);
     document.getElementById('date').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+' 更新';
-    document.getElementById('note').textContent='投稿から対象期間内で、'+fmt(j.threshold)+'回再生以上の動画を再生数順に表示しています。';
+    document.getElementById('note').textContent='投稿から対象期間内で、'+fmt(j.threshold)+'回再生以上の動画を再生数順に表示しています（ショート動画は除きます）。';
     render();
   }).catch(function(){
     document.getElementById('date').textContent='データを読み込めませんでした';
