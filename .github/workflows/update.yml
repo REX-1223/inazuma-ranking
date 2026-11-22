@@ -5,7 +5,7 @@ on:
     - cron: "17 21 * * *"   # 日本時間 6:17ごろ
     - cron: "17 3 * * *"    # 日本時間 12:17ごろ
     - cron: "17 11 * * *"   # 日本時間 20:17ごろ
-  workflow_dispatch:        # 手動で今すぐ動かすボタン
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,14 +14,11 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: 動画を集める
@@ -36,5 +33,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
